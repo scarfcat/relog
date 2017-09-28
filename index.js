@@ -6,27 +6,26 @@ module.exports = function Relog(dispatch) {
   let positions = {},
       curr_char = -1
 
-  // Grab the user list the first time the client sees the lobby
-  dispatch.hookOnce('S_GET_USER_LIST', 5, event => updatePositions(event.characters))
-
-  // Update positions
-  dispatch.hook('C_CHANGE_USER_LOBBY_SLOT_ID', event => {
-    updatePositions(event.characters)
-    console.log('[relog] Character positions updated')
-  })
-
-  // Keep track of current char on manual select for relog nx
-  dispatch.hook('C_SELECT_USER', 1, event => {
-    curr_char = positions[event.id]
-    console.log('[relog] Char selected: ' + curr_char)
-  })
-
-
   command.add('relog', (name) => {
     if (!name) return
     getCharacterId(name)
       .then(relog)
       .catch(e => console.error(e.message))
+  })
+
+  // Grab the user list the first time the client sees the lobby
+  dispatch.hookOnce('S_GET_USER_LIST', 5, event => updatePositions(event.characters))
+
+  // Update positions on reorder
+  dispatch.hook('C_CHANGE_USER_LOBBY_SLOT_ID', event => {
+    updatePositions(event.characters)
+    console.log('[relog] Character positions updated')
+  })
+
+  // Keep track of current char for relog nx
+  dispatch.hook('C_SELECT_USER', 1, {order: 100, filter: {fake: null}}, event => {
+    curr_char = positions[event.id]
+    console.log('[relog] Char selected: ' + curr_char)
   })
 
   function send(msg) {
@@ -51,11 +50,7 @@ module.exports = function Relog(dispatch) {
         if (index && index > event.characters.length) index = 1
         event.characters.forEach((char, i) => {
           let pos = char.position || (i+1)
-          if (char.name.toLowerCase() === name || pos === index) {
-            curr_char = pos
-            console.log('[relog] Char selected:' + curr_char)
-            resolve(char.id)
-          }
+          if (char.name.toLowerCase() === name || pos === index) resolve(char.id)
         })
         reject(new Error(`[relog] character "${name}" not found`))
       })
