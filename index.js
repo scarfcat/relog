@@ -1,39 +1,61 @@
-const S = require('./string')
+const Command = require('command')
 
 module.exports = function Relog(dispatch) {
+  const command = Command(dispatch)
 
-  dispatch.hook('C_WHISPER', 1, chatHook)
-  dispatch.hook('C_CHAT', 1, chatHook)
+  let positions = {},
+      curr_char = -1
 
-  function chatHook(event) {
-    const args = S.decodeHTMLEntities(S.stripTags(event.message))
-      .split(/\s+/)
-    const name = args.reduce((out, part) => {
-      if (part.toLowerCase() === '!relog') return true
-      if (out === true) return part
-      return out
-    }, false)
+  // Grab the user list the first time the client sees the lobby
+  dispatch.hookOnce('S_GET_USER_LIST', 5, event => updatePositions(event.characters))
 
-    if (name) {
-      relogByName(name)
-      return false
-    }
-  }
+  // Update positions
+  dispatch.hook('C_CHANGE_USER_LOBBY_SLOT_ID', event => {
+    updatePositions(event.characters)
+    console.log('[relog] Character positions updated')
+  })
 
-  function relogByName(name) {
+  // Keep track of current char on manual select for relog nx
+  dispatch.hook('C_SELECT_USER', 1, event => {
+    curr_char = positions[event.id]
+    console.log('[relog] Char selected: ' + curr_char)
+  })
+
+
+  command.add('relog', (name) => {
     if (!name) return
     getCharacterId(name)
       .then(relog)
       .catch(e => console.error(e.message))
+  })
+
+  function send(msg) {
+    command.message(' (relog): ' + msg)
+  }
+
+  function updatePositions(characters) {
+    if (!characters) return
+    characters.forEach((char, i) => {
+      let {id, position} = char
+      position = position || (i+1)
+      positions[id] = position
+    })
   }
 
   function getCharacterId(name) {
     return new Promise((resolve, reject) => {
       // request handler, resolves with character's playerId
-      const userListHook = dispatch.hookOnce('S_GET_USER_LIST', 1, event => {
-        event.characters.forEach(char => {
-          if (char.name.toLowerCase() === name.toLowerCase())
+      const userListHook = dispatch.hookOnce('S_GET_USER_LIST', 5, event => {
+        name = name.toLowerCase()
+        let index = (name === 'nx')? ++curr_char : parseInt(name)
+        if (index && index > event.characters.length) index = 1
+        event.characters.forEach((char, i) => {
+          let pos = char.position || (i+1)
+          if (char.name.toLowerCase() === name || pos === index) {
+            curr_char = pos
+            console.log('[relog] Char selected:' + curr_char)
             resolve(char.id)
+          }
         })
         reject(new Error(`[relog] character "${name}" not found`))
       })
@@ -60,14 +82,14 @@ module.exports = function Relog(dispatch) {
       dispatch.toClient('S_RETURN_TO_LOBBY', 1, {})
 
       // the server is not ready yet, displaying "Loading..." as char names
-      userListHook = dispatch.hookOnce('S_GET_USER_LIST', 1, event => {
+      userListHook = dispatch.hookOnce('S_GET_USER_LIST', 5, event => {
         event.characters.forEach(char => char.name = 'Loading...')
         return true
       })
 
       // the server is ready to relog to a new character
       lobbyHook = dispatch.hookOnce('S_RETURN_TO_LOBBY', 1, () => {
-        dispatch.toServer('C_SELECT_USER', 1, { id: targetId, unk: 0 })
+        process.nextTick (() => dispatch.toServer('C_SELECT_USER', 1, { id: targetId, unk: 0 }))
       })
     })
 
@@ -76,14 +98,5 @@ module.exports = function Relog(dispatch) {
       for (const hook of [prepareLobbyHook, lobbyHook, userListHook])
         if (hook) dispatch.unhook(hook)
     }, 15000)
-  }
-
-  // slash support
-  try {
-    const Slash = require('slash')
-    const slash = new Slash(dispatch)
-    slash.on('relog', args => args[1] ? relogByName(args[1]) : false)
-  } catch (e) {
-    // do nothing because slash is optional
   }
 }
