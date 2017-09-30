@@ -16,6 +16,10 @@ module.exports = function Relog(dispatch) {
   // Grab the user list the first time the client sees the lobby
   dispatch.hookOnce('S_GET_USER_LIST', 5, event => updatePositions(event.characters))
 
+  dispatch.hook('C_DELETE_USER', 'raw', () =>
+    dispatch.hookOnce('S_GET_USER_LIST', 5, event => updatePositions(event.characters))
+  )
+
   // Update positions on reorder
   dispatch.hook('C_CHANGE_USER_LOBBY_SLOT_ID', event => {
     updatePositions(event.characters)
@@ -34,10 +38,10 @@ module.exports = function Relog(dispatch) {
 
   function updatePositions(characters) {
     if (!characters) return
+    positions = {}
     characters.forEach((char, i) => {
       let {id, position} = char
-      position = position || (i+1)
-      positions[id] = position
+      positions[id] = position || (i+1)
     })
   }
 
@@ -49,6 +53,7 @@ module.exports = function Relog(dispatch) {
         let index = (name === 'nx')? ++curr_char : parseInt(name)
         if (index && index > event.characters.length) index = 1
         event.characters.forEach((char, i) => {
+          if (char.deletion) return
           let pos = char.position || (i+1)
           if (char.name.toLowerCase() === name || pos === index) resolve(char.id)
         })
