@@ -1,5 +1,3 @@
-int32 unk1
-
 array characters
 - uint32 id
 - int32 position
