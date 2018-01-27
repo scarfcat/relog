@@ -1,0 +1,16 @@
+{
+  "files": {
+    "index.js": "289caace11768101c02a1fdb957819860d9f5cd712db073dab8f423f1277789f",
+    "module.json": "7e1429efebe7510b686eea768f47acebd038bd9eff4ffd38e30c48ac3efdb630"
+  },
+  "defs": {
+    "S_GET_USER_LIST": 5,
+    "C_GET_USER_LIST": 1,
+    "C_RETURN_TO_LOBBY": 1,
+    "S_RETURN_TO_LOBBY": 1,
+    "S_PREPARE_RETURN_TO_LOBBY": 1,
+    "C_SELECT_USER": 1,
+    "C_CHANGE_USER_LOBBY_SLOT_ID": 1,
+    "C_DELETE_USER": 1
+  }
+}
