@@ -2,11 +2,10 @@
   "files": {
     "index.js": "d0381164881e103d5b23f1b49190b51442cf79bd0f22070d4ac7f777e25c411d",
     "module.json": "9a6a06fb34480683be58a513c97ab4757aa544d39def3952c23efce740ae8199",
-    "Newtonsoft.Json.dll": "564e6201dbf6354460d9ca180f0752d50dd7496fff49e05f67a9af42a2e772c7",
     "README.md": "7f5bd1b71f25be323526967d737df476cea27e60ef39f641669a1913cc4ff272"
   },
     "defs": {
-    "S_GET_USER_LIST": 5,
+    "S_GET_USER_LIST": 9,
     "C_GET_USER_LIST": 1,
     "C_RETURN_TO_LOBBY": 1,
     "S_RETURN_TO_LOBBY": 1,
