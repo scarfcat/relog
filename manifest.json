@@ -4,5 +4,15 @@
     "module.json": "9a6a06fb34480683be58a513c97ab4757aa544d39def3952c23efce740ae8199",
     "Newtonsoft.Json.dll": "564e6201dbf6354460d9ca180f0752d50dd7496fff49e05f67a9af42a2e772c7",
     "README.md": "7f5bd1b71f25be323526967d737df476cea27e60ef39f641669a1913cc4ff272"
+  },
+    "defs": {
+    "S_GET_USER_LIST": 5,
+    "C_GET_USER_LIST": 1,
+    "C_RETURN_TO_LOBBY": 1,
+    "S_RETURN_TO_LOBBY": 1,
+    "S_PREPARE_RETURN_TO_LOBBY": 1,
+    "C_SELECT_USER": 1,
+    "C_CHANGE_USER_LOBBY_SLOT_ID": 1,
+    "C_DELETE_USER": 1
   }
 }
